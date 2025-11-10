@@ -1,0 +1,1270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MAB AI Business Calculator - Pricing Wizard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    
+    <style>
+        body { 
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
+        }
+        
+        .glass-card {
+            background: rgba(30, 41, 59, 0.6);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(148, 163, 184, 0.1);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        }
+        
+        .gradient-text {
+            background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 50%, #2563eb 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .step-indicator {
+            position: relative;
+            display: flex;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+        
+        .step-number {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1.125rem;
+            transition: all 0.3s ease;
+            border: 3px solid #334155;
+            background: #1e293b;
+        }
+        
+        .step-indicator.active .step-number {
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            border-color: #60a5fa;
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
+        }
+        
+        .step-indicator.completed .step-number {
+            background: #10b981;
+            border-color: #34d399;
+        }
+        
+        .step-line {
+            flex: 1;
+            height: 3px;
+            background: #334155;
+            margin: 0 1rem;
+            transition: all 0.3s ease;
+        }
+        
+        .step-indicator.completed .step-line {
+            background: #10b981;
+        }
+        
+        .phase-card {
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+        
+        .phase-card:hover {
+            transform: translateY(-4px);
+            border-color: #3b82f6;
+            box-shadow: 0 20px 40px -12px rgba(59, 130, 246, 0.3);
+        }
+        
+        .phase-card.selected {
+            border-color: #3b82f6;
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(37, 99, 235, 0.1));
+            box-shadow: 0 20px 40px -12px rgba(59, 130, 246, 0.4);
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.5s ease-out;
+        }
+        
+        .slide-in-right {
+            animation: slideInRight 0.5s ease-out;
+        }
+        
+        .slide-in-left {
+            animation: slideInLeft 0.5s ease-out;
+        }
+        
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @keyframes slideInRight {
+            from {
+                opacity: 0;
+                transform: translateX(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+        
+        @keyframes slideInLeft {
+            from {
+                opacity: 0;
+                transform: translateX(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+        
+        input[type="number"], input[type="range"], select {
+            background: rgba(15, 23, 42, 0.8);
+            border: 2px solid #334155;
+            transition: all 0.2s ease;
+        }
+        
+        input[type="number"]:focus, input[type="range"]:focus, select:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+            outline: none;
+            background: rgba(15, 23, 42, 0.95);
+        }
+        
+        input[type="range"] {
+            height: 8px;
+            border-radius: 4px;
+            appearance: none;
+        }
+        
+        input[type="range"]::-webkit-slider-thumb {
+            appearance: none;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+            transition: all 0.2s ease;
+        }
+        
+        input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+            box-shadow: 0 6px 16px rgba(59, 130, 246, 0.6);
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            transition: all 0.2s ease;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px -5px rgba(59, 130, 246, 0.5);
+        }
+        
+        .btn-secondary {
+            background: rgba(51, 65, 85, 0.8);
+            border: 2px solid #475569;
+            transition: all 0.2s ease;
+        }
+        
+        .btn-secondary:hover {
+            background: rgba(71, 85, 105, 0.8);
+            border-color: #64748b;
+        }
+        
+        .tooltip {
+            position: relative;
+        }
+        
+        .tooltip-text {
+            visibility: hidden;
+            position: absolute;
+            z-index: 1000;
+            bottom: 125%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #1e293b;
+            color: #f1f5f9;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            white-space: nowrap;
+            border: 1px solid #334155;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+        
+        .tooltip:hover .tooltip-text {
+            visibility: visible;
+            opacity: 1;
+        }
+        
+        .progress-bar {
+            height: 8px;
+            background: #1e293b;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #3b82f6, #2563eb);
+            transition: width 0.5s ease;
+        }
+        
+        .metric-card {
+            transition: all 0.3s ease;
+        }
+        
+        .metric-card:hover {
+            transform: translateY(-2px);
+        }
+        
+        .pulse {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: .8;
+            }
+        }
+    </style>
+</head>
+<body class="min-h-screen text-gray-100">
+    
+    <!-- Header -->
+    <header class="py-8 border-b border-gray-700">
+        <div class="max-w-6xl mx-auto px-6">
+            <div class="text-center">
+                <h1 class="text-4xl md:text-5xl font-bold mb-3">
+                    <span class="gradient-text">MAB AI</span>
+                    <span class="text-gray-100">Pricing Wizard</span>
+                </h1>
+                <p class="text-lg text-gray-400">
+                    Let's build your custom proposal in 4 simple steps
+                </p>
+            </div>
+        </div>
+    </header>
+
+    <div class="max-w-6xl mx-auto px-6 py-12">
+        
+        <!-- Progress Steps -->
+        <div class="mb-12">
+            <div class="flex items-center justify-between max-w-3xl mx-auto">
+                <div class="step-indicator active" id="step-indicator-1">
+                    <div class="step-number">1</div>
+                    <div class="hidden md:block ml-3">
+                        <div class="font-semibold text-sm">Choose Phase</div>
+                        <div class="text-xs text-gray-400">Service type</div>
+                    </div>
+                </div>
+                <div class="step-line"></div>
+                <div class="step-indicator" id="step-indicator-2">
+                    <div class="step-number">2</div>
+                    <div class="hidden md:block ml-3">
+                        <div class="font-semibold text-sm">Project Details</div>
+                        <div class="text-xs text-gray-400">Scope & specs</div>
+                    </div>
+                </div>
+                <div class="step-line"></div>
+                <div class="step-indicator" id="step-indicator-3">
+                    <div class="step-number">3</div>
+                    <div class="hidden md:block ml-3">
+                        <div class="font-semibold text-sm">Business Model</div>
+                        <div class="text-xs text-gray-400">Economics</div>
+                    </div>
+                </div>
+                <div class="step-line"></div>
+                <div class="step-indicator" id="step-indicator-4">
+                    <div class="step-number">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                        </svg>
+                    </div>
+                    <div class="hidden md:block ml-3">
+                        <div class="font-semibold text-sm">Results</div>
+                        <div class="text-xs text-gray-400">Your proposal</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Progress Bar -->
+            <div class="progress-bar mt-8 max-w-3xl mx-auto">
+                <div class="progress-fill" id="progress-fill" style="width: 25%"></div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="glass-card rounded-3xl p-8 md:p-12">
+            
+            <!-- Step 1: Choose Phase -->
+            <div id="step-1" class="step-content fade-in">
+                <div class="text-center mb-12">
+                    <h2 class="text-3xl font-bold mb-4">What service are you offering?</h2>
+                    <p class="text-gray-400 text-lg">Choose the phase that best matches your client's needs</p>
+                </div>
+                
+                <div class="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+                    <div class="phase-card glass-card rounded-2xl p-8 text-center" data-phase="diagnose">
+                        <div class="text-6xl mb-4">🔍</div>
+                        <h3 class="text-2xl font-bold mb-3">Diagnose</h3>
+                        <p class="text-gray-400 mb-4">Discovery & opportunity audit to identify AI automation potential</p>
+                        <div class="text-sm text-blue-400 font-semibold">$5K - $17.5K</div>
+                        <div class="text-xs text-gray-500 mt-2">20-100 hours</div>
+                    </div>
+                    
+                    <div class="phase-card glass-card rounded-2xl p-8 text-center" data-phase="build">
+                        <div class="text-6xl mb-4">🔨</div>
+                        <h3 class="text-2xl font-bold mb-3">Build</h3>
+                        <p class="text-gray-400 mb-4">Custom implementation of AI solutions tailored to your workflows</p>
+                        <div class="text-sm text-blue-400 font-semibold">$9K - $72K+</div>
+                        <div class="text-xs text-gray-500 mt-2">40-320+ hours</div>
+                    </div>
+                    
+                    <div class="phase-card glass-card rounded-2xl p-8 text-center" data-phase="scale">
+                        <div class="text-6xl mb-4">📈</div>
+                        <h3 class="text-2xl font-bold mb-3">Scale</h3>
+                        <p class="text-gray-400 mb-4">SaaS platform deployment with ongoing support and optimization</p>
+                        <div class="text-sm text-blue-400 font-semibold">$7.5K - $25K setup</div>
+                        <div class="text-xs text-gray-500 mt-2">+ $2.5K-$5K/month</div>
+                    </div>
+                    
+                    <div class="phase-card glass-card rounded-2xl p-8 text-center" data-phase="advise">
+                        <div class="text-6xl mb-4">🎯</div>
+                        <h3 class="text-2xl font-bold mb-3">Advise</h3>
+                        <p class="text-gray-400 mb-4">Strategic partnership with retained advisory and priority support</p>
+                        <div class="text-sm text-blue-400 font-semibold">$8K - $25K/month</div>
+                        <div class="text-xs text-gray-500 mt-2">Ongoing retainer</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 2: Project Details (Dynamic based on phase) -->
+            <div id="step-2" class="step-content hidden">
+                <div class="text-center mb-8">
+                    <h2 class="text-3xl font-bold mb-4" id="step-2-title">Project Details</h2>
+                    <p class="text-gray-400 text-lg" id="step-2-subtitle">Configure your specific requirements</p>
+                </div>
+                
+                <div class="max-w-2xl mx-auto space-y-8">
+                    <!-- Diagnose Inputs -->
+                    <div id="diagnose-config" class="phase-config hidden">
+                        <div class="space-y-6">
+                            <div>
+                                <label class="block text-sm font-semibold mb-3 flex items-center">
+                                    Project Complexity
+                                    <span class="tooltip ml-2">
+                                        <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                        </svg>
+                                        <span class="tooltip-text">Determines scope and depth of audit</span>
+                                    </span>
+                                </label>
+                                <select id="diagnose-complexity" class="w-full p-4 rounded-xl text-white font-medium">
+                                    <option value="simple">Simple - Single workflow analysis ($5,000)</option>
+                                    <option value="medium" selected>Medium - Multi-department review ($9,500)</option>
+                                    <option value="complex">Complex - Full organization audit ($17,500)</option>
+                                </select>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-semibold mb-3">Estimated Hours Required</label>
+                                <input type="range" id="diagnose-hours" min="20" max="100" value="42" class="w-full mb-3">
+                                <div class="flex justify-between text-sm">
+                                    <span class="text-gray-400">20 hours</span>
+                                    <span class="text-blue-400 font-bold text-lg"><span id="diagnose-hours-display">42</span> hours</span>
+                                    <span class="text-gray-400">100 hours</span>
+                                </div>
+                                <div class="mt-2 text-center text-sm text-gray-500">
+                                    Internal cost: $<span id="diagnose-internal-cost">5,670</span> @ $135/hr
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-semibold mb-3">Additional Project Expenses</label>
+                                <div class="relative">
+                                    <span class="absolute left-4 top-4 text-gray-400 font-semibold">$</span>
+                                    <input type="number" id="diagnose-expenses" value="500" min="0" step="100" class="w-full p-4 pl-8 rounded-xl text-white font-medium" placeholder="0">
+                                </div>
+                                <div class="mt-2 text-xs text-gray-500">Travel, software licenses, contractor fees, etc.</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Build Inputs -->
+                    <div id="build-config" class="phase-config hidden">
+                        <div class="space-y-6">
+                            <div>
+                                <label class="block text-sm font-semibold mb-3">Project Scope</label>
+                                <select id="build-scope" class="w-full p-4 rounded-xl text-white font-medium">
+                                    <option value="small">Small - Simple automation (40-80 hrs)</option>
+                                    <option value="medium" selected>Medium - Standard implementation (80-160 hrs)</option>
+                                    <option value="large">Large - Complex system (160-320 hrs)</option>
+                                    <option value="enterprise">Enterprise - Full solution (320+ hrs)</option>
+                                </select>
+                            </div>
+                            
+                            <div class="grid md:grid-cols-2 gap-6">
+                                <div>
+                                    <label class="block text-sm font-semibold mb-3">Development Hours</label>
+                                    <input type="number" id="build-hours" value="120" min="40" step="10" class="w-full p-4 rounded-xl text-white font-medium">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-semibold mb-3">Hourly Rate</label>
+                                    <div class="relative">
+                                        <span class="absolute left-4 top-4 text-gray-400 font-semibold">$</span>
+                                        <input type="number" id="build-rate" value="225" min="150" max="400" step="25" class="w-full p-4 pl-8 rounded-xl text-white font-medium">
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="grid md:grid-cols-2 gap-6">
+                                <div>
+                                    <label class="block text-sm font-semibold mb-3">Project Management (%)</label>
+                                    <input type="number" id="build-pm" value="15" min="10" max="25" step="5" class="w-full p-4 rounded-xl text-white font-medium">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-semibold mb-3">Tools & Licenses</label>
+                                    <div class="relative">
+                                        <span class="absolute left-4 top-4 text-gray-400 font-semibold">$</span>
+                                        <input type="number" id="build-tools" value="2000" min="0" step="500" class="w-full p-4 pl-8 rounded-xl text-white font-medium">
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="glass-card rounded-xl p-6">
+                                <label class="flex items-center space-x-3 cursor-pointer">
+                                    <input type="checkbox" id="build-maintenance" class="w-6 h-6 rounded border-2 border-gray-600">
+                                    <span class="font-semibold">Add ongoing maintenance subscription</span>
+                                </label>
+                                
+                                <div id="build-subscription" class="hidden mt-6 space-y-4">
+                                    <div class="grid md:grid-cols-2 gap-4">
+                                        <div>
+                                            <label class="block text-sm font-medium mb-2">Monthly Fee</label>
+                                            <div class="relative">
+                                                <span class="absolute left-3 top-3 text-gray-400">$</span>
+                                                <input type="number" id="build-monthly-fee" value="2500" class="w-full p-3 pl-7 rounded-lg text-white bg-slate-900">
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <label class="block text-sm font-medium mb-2">Support Hours/Month</label>
+                                            <input type="number" id="build-monthly-hours" value="5" class="w-full p-3 rounded-lg text-white bg-slate-900">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Scale Inputs -->
+                    <div id="scale-config" class="phase-config hidden">
+                        <div class="space-y-6">
+                            <div>
+                                <label class="block text-sm font-semibold mb-3">Platform Tier</label>
+                                <select id="scale-tier" class="w-full p-4 rounded-xl text-white font-medium">
+                                    <option value="starter">Starter - Basic platform ($7,500 setup)</option>
+                                    <option value="professional" selected>Professional - Full features ($15,000 setup)</option>
+                                    <option value="enterprise">Enterprise - White label ($25,000 setup)</option>
+                                </select>
+                            </div>
+                            
+                            <div class="grid md:grid-cols-2 gap-6">
+                                <div>
+                                    <label class="block text-sm font-semibold mb-3">Monthly Subscription</label>
+                                    <div class="relative">
+                                        <span class="absolute left-4 top-4 text-gray-400 font-semibold">$</span>
+                                        <input type="number" id="scale-monthly" value="3500" min="1000" step="500" class="w-full p-4 pl-8 rounded-xl text-white font-medium">
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-semibold mb-3">Users Included</label>
+                                    <input type="number" id="scale-users" value="10" min="1" class="w-full p-4 rounded-xl text-white font-medium">
+                                </div>
+                            </div>
+                            
+                            <div class="grid md:grid-cols-2 gap-6">
+                                <div>
+                                    <label class="block text-sm font-semibold mb-3">Support Level</label>
+                                    <select id="scale-support" class="w-full p-4 rounded-xl text-white font-medium">
+                                        <option value="basic">Basic - Email only</option>
+                                        <option value="standard" selected>Standard - Phone & email (+$500/mo)</option>
+                                        <option value="premium">Premium - Dedicated support (+$1,500/mo)</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-semibold mb-3">Custom Features</label>
+                                    <div class="relative">
+                                        <span class="absolute left-4 top-4 text-gray-400 font-semibold">$</span>
+                                        <input type="number" id="scale-custom" value="1000" min="0" step="500" class="w-full p-4 pl-8 rounded-xl text-white font-medium">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Advise Inputs -->
+                    <div id="advise-config" class="phase-config hidden">
+                        <div class="space-y-6">
+                            <div>
+                                <label class="block text-sm font-semibold mb-3">Retainer Level</label>
+                                <select id="advise-level" class="w-full p-4 rounded-xl text-white font-medium">
+                                    <option value="tactical">Tactical - Implementation advisor ($8,000/month)</option>
+                                    <option value="strategic" selected>Strategic - Business partner ($15,000/month)</option>
+                                    <option value="executive">Executive - C-level advisor ($25,000/month)</option>
+                                </select>
+                            </div>
+                            
+                            <div class="grid md:grid-cols-2 gap-6">
+                                <div>
+                                    <label class="block text-sm font-semibold mb-3">Monthly Hours Included</label>
+                                    <input type="number" id="advise-hours" value="30" min="10" step="5" class="w-full p-4 rounded-xl text-white font-medium">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-semibold mb-3">Effective Hourly Rate</label>
+                                    <div class="relative">
+                                        <span class="absolute left-4 top-4 text-gray-400 font-semibold">$</span>
+                                        <input type="number" id="advise-rate" value="500" min="200" step="50" class="w-full p-4 pl-8 rounded-xl text-white font-medium">
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="glass-card rounded-xl p-6">
+                                <label class="flex items-center space-x-3">
+                                    <input type="checkbox" id="advise-priority" class="w-6 h-6 rounded border-2 border-gray-600" checked>
+                                    <div>
+                                        <div class="font-semibold">Priority Support Included</div>
+                                        <div class="text-sm text-gray-400">24-hour response time & dedicated Slack channel</div>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 3: Business Model -->
+            <div id="step-3" class="step-content hidden">
+                <div class="text-center mb-8">
+                    <h2 class="text-3xl font-bold mb-4">Business Model Parameters</h2>
+                    <p class="text-gray-400 text-lg">Fine-tune your economics and market positioning</p>
+                </div>
+                
+                <div class="max-w-2xl mx-auto space-y-8">
+                    <div class="glass-card rounded-2xl p-8">
+                        <h3 class="text-xl font-semibold mb-6 text-blue-400">Customer Lifetime Value</h3>
+                        <div class="grid md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="block text-sm font-semibold mb-3">Customer Acquisition Cost</label>
+                                <div class="relative">
+                                    <span class="absolute left-4 top-4 text-gray-400 font-semibold">$</span>
+                                    <input type="number" id="cac" value="2500" min="0" step="500" class="w-full p-4 pl-8 rounded-xl text-white font-medium">
+                                </div>
+                                <div class="mt-2 text-xs text-gray-500">Marketing, sales, and onboarding costs</div>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold mb-3">Expected Lifespan (months)</label>
+                                <input type="number" id="lifespan" value="24" min="1" step="6" class="w-full p-4 rounded-xl text-white font-medium">
+                                <div class="mt-2 text-xs text-gray-500">How long will this client relationship last?</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="glass-card rounded-2xl p-8">
+                        <h3 class="text-xl font-semibold mb-6 text-purple-400">Market Positioning</h3>
+                        <div>
+                            <label class="block text-sm font-semibold mb-3">Pricing Strategy</label>
+                            <select id="market-position" class="w-full p-4 rounded-xl text-white font-medium">
+                                <option value="budget">Budget/Volume - 10% target margin</option>
+                                <option value="competitive">Competitive - 25% target margin</option>
+                                <option value="premium" selected>Premium - 40% target margin</option>
+                                <option value="luxury">Luxury - 60% target margin</option>
+                            </select>
+                            <div class="mt-4 grid grid-cols-4 gap-2 text-center text-xs">
+                                <div class="p-2 rounded bg-gray-700">
+                                    <div class="text-gray-400">Budget</div>
+                                    <div class="font-bold text-gray-300">$75-125/hr</div>
+                                </div>
+                                <div class="p-2 rounded bg-gray-700">
+                                    <div class="text-gray-400">Competitive</div>
+                                    <div class="font-bold text-blue-400">$150-200/hr</div>
+                                </div>
+                                <div class="p-2 rounded bg-gray-700">
+                                    <div class="text-gray-400">Premium</div>
+                                    <div class="font-bold text-green-400">$225-350/hr</div>
+                                </div>
+                                <div class="p-2 rounded bg-gray-700">
+                                    <div class="text-gray-400">Luxury</div>
+                                    <div class="font-bold text-purple-400">$400+/hr</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 4: Results -->
+            <div id="step-4" class="step-content hidden">
+                <div class="text-center mb-12">
+                    <div class="inline-flex items-center justify-center w-20 h-20 rounded-full bg-green-600 mb-6">
+                        <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                        </svg>
+                    </div>
+                    <h2 class="text-4xl font-bold mb-4">Your Custom Proposal</h2>
+                    <p class="text-gray-400 text-lg">Here's your complete pricing breakdown and business intelligence</p>
+                </div>
+                
+                <div class="grid md:grid-cols-2 gap-8">
+                    <!-- Financial Summary -->
+                    <div class="glass-card rounded-2xl p-8 metric-card">
+                        <h3 class="text-2xl font-semibold mb-6 gradient-text">💰 Financial Summary</h3>
+                        
+                        <div class="space-y-6">
+                            <div>
+                                <div class="text-sm text-gray-400 mb-2">Customer Price</div>
+                                <div class="text-4xl font-bold" id="total-price">$9,500</div>
+                            </div>
+                            
+                            <div class="flex justify-between items-center py-4 border-t border-b border-gray-700">
+                                <div>
+                                    <div class="text-sm text-gray-400">Total Costs</div>
+                                    <div class="text-lg font-semibold" id="total-cost">$5,670</div>
+                                </div>
+                                <div class="text-right">
+                                    <div class="text-sm text-gray-400">Gross Profit</div>
+                                    <div class="text-2xl font-bold text-green-400" id="gross-profit">$3,830</div>
+                                </div>
+                            </div>
+                            
+                            <div class="grid grid-cols-2 gap-4">
+                                <div class="glass-card rounded-xl p-4 text-center">
+                                    <div class="text-sm text-gray-400 mb-1">Gross Margin</div>
+                                    <div class="text-2xl font-bold" id="gross-margin">40.3%</div>
+                                </div>
+                                <div class="glass-card rounded-xl p-4 text-center">
+                                    <div class="text-sm text-gray-400 mb-1">Effective Rate</div>
+                                    <div class="text-2xl font-bold text-blue-400" id="effective-rate">$226/hr</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Recurring Revenue -->
+                    <div id="recurring-card" class="glass-card rounded-2xl p-8 metric-card hidden">
+                        <h3 class="text-2xl font-semibold mb-6 text-green-400">📈 Recurring Revenue</h3>
+                        
+                        <div class="space-y-6">
+                            <div>
+                                <div class="text-sm text-gray-400 mb-2">Monthly Recurring Revenue</div>
+                                <div class="text-4xl font-bold text-green-400" id="monthly-revenue">$2,500</div>
+                            </div>
+                            
+                            <div class="flex justify-between items-center py-4 border-t border-b border-gray-700">
+                                <div>
+                                    <div class="text-sm text-gray-400">Monthly Costs</div>
+                                    <div class="text-lg font-semibold" id="monthly-costs">$675</div>
+                                </div>
+                                <div class="text-right">
+                                    <div class="text-sm text-gray-400">Monthly Profit</div>
+                                    <div class="text-2xl font-bold text-green-400" id="monthly-profit">$1,825</div>
+                                </div>
+                            </div>
+                            
+                            <div class="grid grid-cols-2 gap-4">
+                                <div class="glass-card rounded-xl p-4 text-center">
+                                    <div class="text-sm text-gray-400 mb-1">MRR Margin</div>
+                                    <div class="text-2xl font-bold" id="mrr-margin">73%</div>
+                                </div>
+                                <div class="glass-card rounded-xl p-4 text-center">
+                                    <div class="text-sm text-gray-400 mb-1">Annual Revenue</div>
+                                    <div class="text-2xl font-bold text-green-400" id="arr">$21,900</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Unit Economics -->
+                    <div class="glass-card rounded-2xl p-8 metric-card">
+                        <h3 class="text-2xl font-semibold mb-6 text-purple-400">📊 Unit Economics</h3>
+                        
+                        <div class="space-y-6">
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <div class="text-sm text-gray-400 mb-2">Customer LTV</div>
+                                    <div class="text-3xl font-bold" id="ltv">$47,630</div>
+                                </div>
+                                <div>
+                                    <div class="text-sm text-gray-400 mb-2">Acquisition Cost</div>
+                                    <div class="text-3xl font-bold" id="cac-display">$2,500</div>
+                                </div>
+                            </div>
+                            
+                            <div class="glass-card rounded-xl p-6 text-center" id="health-indicator">
+                                <div class="text-5xl font-bold mb-2" id="ltv-cac-ratio">19.1:1</div>
+                                <div class="text-sm text-gray-400 mb-4">LTV:CAC Ratio</div>
+                                <div class="font-semibold text-lg" id="health-text">Excellent Unit Economics</div>
+                                <div class="text-sm text-gray-400 mt-2" id="health-description">Strong profitability with fast payback</div>
+                            </div>
+                            
+                            <div class="text-center py-4 border-t border-gray-700">
+                                <div class="text-sm text-gray-400 mb-1">Payback Period</div>
+                                <div class="text-2xl font-bold" id="payback-period">1.4 months</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Market Position -->
+                    <div class="glass-card rounded-2xl p-8 metric-card">
+                        <h3 class="text-2xl font-semibold mb-6 text-blue-400">🎯 Market Position</h3>
+                        
+                        <div style="height: 300px;" class="mb-6">
+                            <canvas id="marketChart"></canvas>
+                        </div>
+                        
+                        <div class="text-center p-4 glass-card rounded-xl">
+                            <div class="font-semibold text-lg mb-2" id="market-position-text">
+                                You're positioned in the Premium tier
+                            </div>
+                            <div class="text-sm text-gray-400" id="market-recommendation">
+                                Optimal pricing for specialized AI consulting
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Navigation Buttons -->
+            <div class="flex justify-between items-center mt-12 pt-8 border-t border-gray-700">
+                <button id="btn-back" class="btn-secondary px-8 py-4 rounded-xl font-semibold text-lg hidden">
+                    <span class="flex items-center">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                        </svg>
+                        Back
+                    </span>
+                </button>
+                
+                <div class="flex-1"></div>
+                
+                <button id="btn-next" class="btn-primary px-10 py-4 rounded-xl font-semibold text-lg">
+                    <span class="flex items-center">
+                        Next Step
+                        <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                        </svg>
+                    </span>
+                </button>
+                
+                <button id="btn-restart" class="btn-primary px-10 py-4 rounded-xl font-semibold text-lg hidden">
+                    <span class="flex items-center">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                        </svg>
+                        Start New Quote
+                    </span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Application state
+        let currentStep = 1;
+        let selectedPhase = null;
+        let calculations = {};
+        let marketChart = null;
+
+        // Market data
+        const marketData = {
+            budget: { min: 75, max: 125, margin: 0.1 },
+            competitive: { min: 150, max: 200, margin: 0.25 },
+            premium: { min: 225, max: 350, margin: 0.4 },
+            luxury: { min: 400, max: 600, margin: 0.6 }
+        };
+
+        // Utility functions
+        const formatCurrency = (amount) => {
+            return new Intl.NumberFormat('en-US', {
+                style: 'currency',
+                currency: 'USD',
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 0
+            }).format(amount);
+        };
+
+        const formatPercent = (value) => {
+            return new Intl.NumberFormat('en-US', {
+                style: 'percent',
+                minimumFractionDigits: 1,
+                maximumFractionDigits: 1
+            }).format(value);
+        };
+
+        // Navigation
+        function goToStep(step) {
+            // Validate before moving forward
+            if (step > currentStep) {
+                if (currentStep === 1 && !selectedPhase) {
+                    alert('Please select a service phase to continue');
+                    return;
+                }
+            }
+
+            // Hide all steps
+            document.querySelectorAll('.step-content').forEach(el => {
+                el.classList.add('hidden');
+            });
+
+            // Show target step
+            const targetStep = document.getElementById(`step-${step}`);
+            targetStep.classList.remove('hidden');
+            
+            if (step > currentStep) {
+                targetStep.classList.add('slide-in-right');
+            } else {
+                targetStep.classList.add('slide-in-left');
+            }
+
+            // Update step indicators
+            for (let i = 1; i <= 4; i++) {
+                const indicator = document.getElementById(`step-indicator-${i}`);
+                indicator.classList.remove('active', 'completed');
+                
+                if (i < step) {
+                    indicator.classList.add('completed');
+                } else if (i === step) {
+                    indicator.classList.add('active');
+                }
+            }
+
+            // Update progress bar
+            const progress = (step / 4) * 100;
+            document.getElementById('progress-fill').style.width = `${progress}%`;
+
+            // Update buttons
+            const btnBack = document.getElementById('btn-back');
+            const btnNext = document.getElementById('btn-next');
+            const btnRestart = document.getElementById('btn-restart');
+
+            if (step === 1) {
+                btnBack.classList.add('hidden');
+            } else {
+                btnBack.classList.remove('hidden');
+            }
+
+            if (step === 4) {
+                btnNext.classList.add('hidden');
+                btnRestart.classList.remove('hidden');
+            } else {
+                btnNext.classList.remove('hidden');
+                btnRestart.classList.add('hidden');
+            }
+
+            currentStep = step;
+
+            // Calculate metrics if on results page
+            if (step === 4) {
+                calculateMetrics();
+            }
+        }
+
+        // Phase selection
+        function selectPhase(phase) {
+            selectedPhase = phase;
+            
+            // Update UI
+            document.querySelectorAll('.phase-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            document.querySelector(`[data-phase="${phase}"]`).classList.add('selected');
+            
+            // Update step 2 content
+            const titles = {
+                diagnose: {
+                    title: 'Discovery Audit Configuration',
+                    subtitle: 'Define the scope and complexity of your assessment'
+                },
+                build: {
+                    title: 'Implementation Project Setup',
+                    subtitle: 'Configure your custom development parameters'
+                },
+                scale: {
+                    title: 'Platform Deployment Details',
+                    subtitle: 'Set up your SaaS subscription model'
+                },
+                advise: {
+                    title: 'Strategic Retainer Terms',
+                    subtitle: 'Configure your advisory partnership'
+                }
+            };
+            
+            document.getElementById('step-2-title').textContent = titles[phase].title;
+            document.getElementById('step-2-subtitle').textContent = titles[phase].subtitle;
+            
+            // Show correct config section
+            document.querySelectorAll('.phase-config').forEach(el => {
+                el.classList.add('hidden');
+            });
+            document.getElementById(`${phase}-config`).classList.remove('hidden');
+        }
+
+        // Calculations
+        function calculateMetrics() {
+            const cac = parseFloat(document.getElementById('cac').value) || 0;
+            const lifespan = parseFloat(document.getElementById('lifespan').value) || 0;
+            const marketPosition = document.getElementById('market-position').value;
+            
+            let totalPrice = 0;
+            let totalCost = 0;
+            let monthlyRevenue = 0;
+            let monthlyCosts = 0;
+            let hasRecurring = false;
+            
+            // Calculate based on phase
+            switch (selectedPhase) {
+                case 'diagnose':
+                    const complexity = document.getElementById('diagnose-complexity').value;
+                    const hours = parseFloat(document.getElementById('diagnose-hours').value) || 0;
+                    const expenses = parseFloat(document.getElementById('diagnose-expenses').value) || 0;
+                    
+                    const complexityPricing = {
+                        simple: 5000,
+                        medium: 9500,
+                        complex: 17500
+                    };
+                    
+                    totalPrice = complexityPricing[complexity];
+                    totalCost = (hours * 135) + expenses;
+                    break;
+                    
+                case 'build':
+                    const buildHours = parseFloat(document.getElementById('build-hours').value) || 0;
+                    const buildRate = parseFloat(document.getElementById('build-rate').value) || 225;
+                    const pmPercent = parseFloat(document.getElementById('build-pm').value) || 15;
+                    const tools = parseFloat(document.getElementById('build-tools').value) || 0;
+                    
+                    totalPrice = buildHours * buildRate;
+                    totalCost = (buildHours * 135) + (totalPrice * pmPercent / 100) + tools;
+                    
+                    if (document.getElementById('build-maintenance').checked) {
+                        hasRecurring = true;
+                        monthlyRevenue = parseFloat(document.getElementById('build-monthly-fee').value) || 2500;
+                        const monthlyHours = parseFloat(document.getElementById('build-monthly-hours').value) || 5;
+                        monthlyCosts = monthlyHours * 135 + 200;
+                    }
+                    break;
+                    
+                case 'scale':
+                    const tier = document.getElementById('scale-tier').value;
+                    const scaleTierPricing = {
+                        starter: 7500,
+                        professional: 15000,
+                        enterprise: 25000
+                    };
+                    
+                    totalPrice = scaleTierPricing[tier];
+                    totalCost = totalPrice * 0.45;
+                    
+                    hasRecurring = true;
+                    monthlyRevenue = parseFloat(document.getElementById('scale-monthly').value) || 3500;
+                    const supportLevel = document.getElementById('scale-support').value;
+                    const customFees = parseFloat(document.getElementById('scale-custom').value) || 0;
+                    
+                    const supportCosts = {
+                        basic: 200,
+                        standard: 400,
+                        premium: 800
+                    };
+                    
+                    monthlyCosts = supportCosts[supportLevel] + 300 + (customFees * 0.3);
+                    break;
+                    
+                case 'advise':
+                    const adviseLevel = document.getElementById('advise-level').value;
+                    const advisePricing = {
+                        tactical: 8000,
+                        strategic: 15000,
+                        executive: 25000
+                    };
+                    
+                    totalPrice = 0;
+                    totalCost = 0;
+                    hasRecurring = true;
+                    
+                    monthlyRevenue = advisePricing[adviseLevel];
+                    const adviseHours = parseFloat(document.getElementById('advise-hours').value) || 30;
+                    monthlyCosts = adviseHours * 135 + 500;
+                    break;
+            }
+            
+            // Apply market adjustments
+            const targetMargin = marketData[marketPosition].margin;
+            if (totalPrice > 0) {
+                const adjustedPrice = totalCost / (1 - targetMargin);
+                if (adjustedPrice > totalPrice) {
+                    totalPrice = adjustedPrice;
+                }
+            }
+            
+            // Calculate metrics
+            const grossProfit = totalPrice - totalCost;
+            const grossMargin = totalPrice > 0 ? grossProfit / totalPrice : 0;
+            
+            const monthlyProfit = monthlyRevenue - monthlyCosts;
+            const mrrMargin = monthlyRevenue > 0 ? monthlyProfit / monthlyRevenue : 0;
+            
+            let ltv = grossProfit;
+            if (hasRecurring && lifespan > 0) {
+                ltv += (monthlyProfit * lifespan);
+            }
+            
+            const ltvCacRatio = cac > 0 ? ltv / cac : 0;
+            const paybackPeriod = monthlyProfit > 0 ? cac / monthlyProfit : 0;
+            
+            calculations = {
+                totalPrice,
+                totalCost,
+                grossProfit,
+                grossMargin,
+                monthlyRevenue,
+                monthlyCosts,
+                monthlyProfit,
+                mrrMargin,
+                hasRecurring,
+                ltv,
+                ltvCacRatio,
+                paybackPeriod,
+                cac,
+                effectiveRate: totalCost > 0 ? totalPrice / (totalCost / 135) : 0
+            };
+            
+            updateDisplay();
+        }
+
+        function updateDisplay() {
+            const c = calculations;
+            
+            // Financial summary
+            document.getElementById('total-price').textContent = formatCurrency(c.totalPrice);
+            document.getElementById('total-cost').textContent = formatCurrency(c.totalCost);
+            document.getElementById('gross-profit').textContent = formatCurrency(c.grossProfit);
+            document.getElementById('gross-margin').textContent = formatPercent(c.grossMargin);
+            document.getElementById('effective-rate').textContent = `$${Math.round(c.effectiveRate)}/hr`;
+            
+            // Recurring revenue
+            const recurringCard = document.getElementById('recurring-card');
+            if (c.hasRecurring) {
+                recurringCard.classList.remove('hidden');
+                document.getElementById('monthly-revenue').textContent = formatCurrency(c.monthlyRevenue);
+                document.getElementById('monthly-costs').textContent = formatCurrency(c.monthlyCosts);
+                document.getElementById('monthly-profit').textContent = formatCurrency(c.monthlyProfit);
+                document.getElementById('mrr-margin').textContent = formatPercent(c.mrrMargin);
+                document.getElementById('arr').textContent = formatCurrency(c.monthlyProfit * 12);
+            } else {
+                recurringCard.classList.add('hidden');
+            }
+            
+            // Unit economics
+            document.getElementById('ltv').textContent = formatCurrency(c.ltv);
+            document.getElementById('cac-display').textContent = formatCurrency(c.cac);
+            document.getElementById('ltv-cac-ratio').textContent = `${c.ltvCacRatio.toFixed(1)}:1`;
+            
+            const paybackElement = document.getElementById('payback-period');
+            if (c.paybackPeriod > 0 && c.paybackPeriod < 100) {
+                paybackElement.textContent = `${c.paybackPeriod.toFixed(1)} months`;
+            } else {
+                paybackElement.textContent = 'One-time project';
+            }
+            
+            // Health indicator
+            const healthIndicator = document.getElementById('health-indicator');
+            const healthText = document.getElementById('health-text');
+            const healthDesc = document.getElementById('health-description');
+            
+            if (c.ltvCacRatio >= 5 && c.grossMargin >= 0.3) {
+                healthIndicator.className = 'glass-card rounded-xl p-6 text-center bg-green-900/30 border-2 border-green-500';
+                healthText.textContent = 'Excellent Unit Economics';
+                healthDesc.textContent = 'Strong profitability with healthy ratios';
+            } else if (c.ltvCacRatio >= 3 && c.grossMargin >= 0.2) {
+                healthIndicator.className = 'glass-card rounded-xl p-6 text-center bg-yellow-900/30 border-2 border-yellow-500';
+                healthText.textContent = 'Good Unit Economics';
+                healthDesc.textContent = 'Solid foundation for growth';
+            } else {
+                healthIndicator.className = 'glass-card rounded-xl p-6 text-center bg-red-900/30 border-2 border-red-500';
+                healthText.textContent = 'Review Required';
+                healthDesc.textContent = 'Consider pricing or cost optimization';
+            }
+            
+            updateMarketChart();
+        }
+
+        function updateMarketChart() {
+            const ctx = document.getElementById('marketChart').getContext('2d');
+            
+            if (marketChart) {
+                marketChart.destroy();
+            }
+            
+            const c = calculations;
+            const effectiveHourly = c.effectiveRate;
+            
+            marketChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Budget', 'Competitive', 'Premium', 'Your Rate'],
+                    datasets: [{
+                        label: 'Hourly Rate',
+                        data: [100, 175, 287, effectiveHourly],
+                        backgroundColor: [
+                            'rgba(107, 114, 128, 0.8)',
+                            'rgba(59, 130, 246, 0.8)',
+                            'rgba(16, 185, 129, 0.8)',
+                            'rgba(245, 158, 11, 0.9)'
+                        ],
+                        borderColor: [
+                            '#6b7280',
+                            '#3b82f6',
+                            '#10b981',
+                            '#f59e0b'
+                        ],
+                        borderWidth: 2,
+                        borderRadius: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: 'rgba(15, 23, 42, 0.95)',
+                            titleColor: '#f9fafb',
+                            bodyColor: '#f9fafb',
+                            borderColor: '#334155',
+                            borderWidth: 2,
+                            padding: 12,
+                            callbacks: {
+                                label: (context) => `$${Math.round(context.parsed.y)}/hr`
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: { 
+                                color: 'rgba(51, 65, 85, 0.3)',
+                                drawBorder: false
+                            },
+                            ticks: {
+                                color: '#9ca3af',
+                                font: { size: 12, weight: '500' },
+                                callback: (value) => `$${value}`
+                            }
+                        },
+                        x: {
+                            grid: { display: false },
+                            ticks: { 
+                                color: '#9ca3af',
+                                font: { size: 12, weight: '500' }
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // Update market position text
+            const positionText = document.getElementById('market-position-text');
+            const recommendation = document.getElementById('market-recommendation');
+            
+            if (effectiveHourly < 125) {
+                positionText.textContent = "You're in the Budget tier";
+                recommendation.textContent = "Consider value-based pricing increases";
+            } else if (effectiveHourly < 200) {
+                positionText.textContent = "You're in the Competitive tier";
+                recommendation.textContent = "Good positioning for standard consulting";
+            } else if (effectiveHourly < 350) {
+                positionText.textContent = "You're in the Premium tier";
+                recommendation.textContent = "Optimal pricing for specialized AI work";
+            } else {
+                positionText.textContent = "You're in the Luxury tier";
+                recommendation.textContent = "Premium positioning - ensure value delivery";
+            }
+        }
+
+        // Event listeners
+        document.addEventListener('DOMContentLoaded', function() {
+            // Phase selection
+            document.querySelectorAll('.phase-card').forEach(card => {
+                card.addEventListener('click', function() {
+                    selectPhase(this.dataset.phase);
+                });
+            });
+            
+            // Navigation buttons
+            document.getElementById('btn-next').addEventListener('click', () => {
+                goToStep(currentStep + 1);
+            });
+            
+            document.getElementById('btn-back').addEventListener('click', () => {
+                goToStep(currentStep - 1);
+            });
+            
+            document.getElementById('btn-restart').addEventListener('click', () => {
+                selectedPhase = null;
+                document.querySelectorAll('.phase-card').forEach(card => {
+                    card.classList.remove('selected');
+                });
+                goToStep(1);
+            });
+            
+            // Dynamic inputs
+            document.getElementById('diagnose-hours').addEventListener('input', (e) => {
+                const hours = e.target.value;
+                document.getElementById('diagnose-hours-display').textContent = hours;
+                const internalCost = hours * 135 + (parseFloat(document.getElementById('diagnose-expenses').value) || 0);
+                document.getElementById('diagnose-internal-cost').textContent = Math.round(internalCost).toLocaleString();
+            });
+            
+            document.getElementById('build-maintenance').addEventListener('change', (e) => {
+                document.getElementById('build-subscription').classList.toggle('hidden', !e.target.checked);
+            });
+            
+            // All inputs trigger recalc on step 4
+            document.querySelectorAll('input, select').forEach(input => {
+                input.addEventListener('change', () => {
+                    if (currentStep === 4) {
+                        calculateMetrics();
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
